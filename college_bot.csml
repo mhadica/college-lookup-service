@@ -1,0 +1,97 @@
+start:
+  say "Welcome to College Lookup Service! 🎓"
+  say "I can help you find colleges in Kerala based on district and type."
+  goto get_district
+
+get_district:
+  say "Please select your district:"
+  do districtQuestion = Question(
+    title="Select your district",
+    buttons=[
+      Button("Thiruvananthapuram"),
+      Button("Kollam"),
+      Button("Pathanamthitta"),
+      Button("Alappuzha"),
+      Button("Kottayam"),
+      Button("Idukki"),
+      Button("Ernakulam"),
+      Button("Thrissur"),
+      Button("Palakkad"),
+      Button("Malappuram"),
+      Button("Kozhikode"),
+      Button("Wayanad"),
+      Button("Kannur"),
+      Button("Kasaragod")
+    ]
+  )
+  say districtQuestion
+  hold
+  remember selectedDistrict = event
+  goto get_college_type
+
+get_college_type:
+  say "Great! Now, please select the type of college you're interested in:"
+  do typeQuestion = Question(
+    title="Select college type",
+    buttons=[
+      Button("Engineering"),
+      Button("Arts & Science"),
+      Button("Medical"),
+      Button("Law"),
+      Button("Management & Commerce"),
+      Button("Architecture & Design"),
+      Button("Polytechnic & ITI"),
+      Button("Others")
+    ]
+  )
+  say typeQuestion
+  hold
+  remember selectedType = event
+  goto search_colleges
+
+search_colleges:
+  say Typing(1000)
+  do response = http.get("https://your-vercel-domain.vercel.app/api/colleges/search?district={{selectedDistrict}}&type={{selectedType}}")
+  do colleges = response.body
+  do len = colleges.length
+
+  say "Here are the colleges matching your criteria:"
+  
+  if (len > 0) say "Found {{len}} colleges matching your criteria."
+  else say "Sorry, no colleges found matching your criteria. Please try different options."
+  
+  if (len > 0) goto display_colleges
+  else goto get_district
+
+display_colleges:
+  do i = 0
+  do college = colleges[i]
+  do collegeType = college.College_Type
+  do whatsappLink = college.WhatsApp_Link
+  say "🏫 *{{college.Name}}*"
+  say "📍 District: {{college.District}}"
+  say "🎓 Type: {{collegeType}}"
+  say "📞 Contact: {{college.Contact}}"
+  say "💬 WhatsApp Group: {{whatsappLink}}"
+  do i = i + 1
+  if (i < len) goto display_colleges
+  goto ask_continue
+
+ask_continue:
+  do continueQuestion = Question(
+    title="Would you like to search for more colleges?",
+    buttons=[
+      Button("Yes"),
+      Button("No")
+    ]
+  )
+  say continueQuestion
+  hold
+  if (event == "Yes") goto get_district
+  else goto end_search
+
+end_search:
+  say "Thank you for using College Lookup Service!"
+  say "If you need any more information, feel free to start over."
+  say "Good luck with your college search! 🎓"
+  goto end 
