@@ -8,11 +8,12 @@
   ],
   "routes": [
     {
+      "src": "/Admission Information.xlsx",
+      "dest": "/Admission Information.xlsx"
+    },
+    {
       "src": "/(.*)",
       "dest": "index.js"
     }
-  ],
-  "files": [
-    "Admission Information.xlsx"
   ]
 } 
