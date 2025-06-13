@@ -27,12 +27,20 @@ app.get('/', (req, res) => {
 // Read and parse the Excel file
 let colleges = [];
 try {
-    const workbook = XLSX.readFile('Admission Information.xlsx');
+    // Use path.join to handle file paths correctly in both development and production
+    const filePath = path.join(__dirname, 'Admission Information.xlsx');
+    console.log('Attempting to read Excel file from:', filePath);
+    
+    const workbook = XLSX.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     colleges = XLSX.utils.sheet_to_json(worksheet);
+    
+    console.log('Successfully loaded colleges data. Count:', colleges.length);
+    console.log('Sample college data:', colleges[0]);
 } catch (error) {
     console.error('Error reading Excel file:', error);
+    console.error('Current directory:', __dirname);
 }
 
 // Helper function to filter colleges

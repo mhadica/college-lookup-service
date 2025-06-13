@@ -4,10 +4,6 @@
     {
       "src": "index.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "Admission Information.xlsx",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -15,5 +11,8 @@
       "src": "/(.*)",
       "dest": "index.js"
     }
+  ],
+  "files": [
+    "Admission Information.xlsx"
   ]
 } 
