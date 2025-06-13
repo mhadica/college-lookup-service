@@ -1,12 +1,29 @@
 start:
-  say "Welcome to College Lookup Service! 🎓"
-  say "I can help you find colleges in Kerala based on district and type."
-  goto get_district
+  // College data
+  do collegeData = [
+    {
+      "Timestamp": 45752.87050153935,
+      "Campus Full Name": "GOVERNMENT ENGINEERING COLLEGE THRISSUR",
+      "Campus Short Form": "GECT",
+      "University Name": "APJ Abdul Kalam Technological University (KTU)",
+      "District": "Thrissur",
+      "College Type": "Engineering",
+      "College Authority": "Government",
+      "UG Courses Offered": "1- Civil Engineering\n2- Mechanical Engineering \n3- Electrical and Electronics Engineering \n4- Chemical Engineering \n5- Production Engineering \n6- Electronics and Communication Engineering \n7- Computer Science and Engineering \n8- School of Architecture and Planning\n9- Cyber Physical Systems engineering ",
+      "PG Courses Offered": "1- M.Tech Geotechnical Engineering\n2- M.Tech Structural Engineering\n3- M.Tech\nWater Resources & Hydroinformatics\n4- M.Tech Environmental Engineering\n5-M.Tech (Production Engineering)\n6- M.Tech (Industrial Engineering\nand Management)\n7-M.Tech (Internal Combustion Engines &\nTurbo Machinery)\n8- M.Tech (Power Systems)\n9- M.Tech (Electrical Instrumentation &\nControl)\n10- M.Tech (Power Electronics)\n11- M.Tech (Manufacturing\nSystems Management)\n12- M.Tech (Engineering Design)\n13- M.Tech(Communication Engg.&\nSignal Processing)\n14-M.Tech(VLSI and Embedded Systems)\n15- M.Tech ( Computer Science)\n16- Master in Computer Application (MCA)",
+      "Helpdesk Coordinator 1 Name": "Muhammed Jabir ",
+      "Helpdesk Contact Number 1 ": "89434 02137",
+      "Helpdesk Coordinator 2 Name": "Abdulla B",
+      "Helpdesk Contact Number 2": "79027 43251",
+      "WhatsApp Group Link": "https://chat.whatsapp.com/GxdQvEGizIaKcFgtioaYh2"
+    }
+  ]
 
-get_district:
-  say "Please select your district:"
-  do districtQuestion = Question(
-    title="Select your district",
+  say Text("🎓 Welcome to College Information System!")
+  say Text("Please select your district:")
+  
+  say Question(
+    "Select District:",
     buttons=[
       Button("Thiruvananthapuram"),
       Button("Kollam"),
@@ -24,74 +41,130 @@ get_district:
       Button("Kasaragod")
     ]
   )
-  say districtQuestion
   hold
-  remember selectedDistrict = event
-  goto get_college_type
+  goto select_district
 
-get_college_type:
-  say "Great! Now, please select the type of college you're interested in:"
-  do typeQuestion = Question(
-    title="Select college type",
+select_district:
+  do selectedDistrict = event.text
+  say Text("📍 You selected: " + selectedDistrict)
+  say Text("")
+  
+  say Text("Now select the college type:")
+  say Question(
+    "Select College Type:",
     buttons=[
       Button("Engineering"),
-      Button("Arts & Science"),
+      Button("Arts and Science"),
       Button("Medical"),
-      Button("Law"),
-      Button("Management & Commerce"),
-      Button("Architecture & Design"),
-      Button("Polytechnic & ITI"),
-      Button("Others")
+      Button("Polytechnic")
     ]
   )
-  say typeQuestion
   hold
-  remember selectedType = event
-  goto search_colleges
+  goto select_type
 
-search_colleges:
-  say Typing(1000)
-  do response = http.get("https://your-vercel-domain.vercel.app/api/colleges/search?district={{selectedDistrict}}&type={{selectedType}}")
-  do colleges = response.body
-  do len = colleges.length
-
-  say "Here are the colleges matching your criteria:"
+select_type:
+  do selectedType = event.text
+  say Text("🏫 You selected: " + selectedType)
+  say Text("")
+  say Text("Searching for " + selectedType + " colleges in " + selectedDistrict + "...")
   
-  if (len > 0) say "Found {{len}} colleges matching your criteria."
-  else say "Sorry, no colleges found matching your criteria. Please try different options."
-  
-  if (len > 0) goto display_colleges
-  else goto get_district
-
-display_colleges:
+  // Filter colleges based on selection
+  do foundColleges = []
   do i = 0
-  do college = colleges[i]
-  do collegeType = college.College_Type
-  do whatsappLink = college.WhatsApp_Link
-  say "🏫 *{{college.Name}}*"
-  say "📍 District: {{college.District}}"
-  say "🎓 Type: {{collegeType}}"
-  say "📞 Contact: {{college.Contact}}"
-  say "💬 WhatsApp Group: {{whatsappLink}}"
-  do i = i + 1
-  if (i < len) goto display_colleges
-  goto ask_continue
+  while (i < Length(collegeData)) {
+    do college = collegeData[i]
+    if (college["District"] == selectedDistrict && college["College Type"] == selectedType) {
+      do foundColleges = foundColleges + [college]
+    }
+    do i = i + 1
+  }
+  
+  do collegeCount = Length(foundColleges)
+  say Text("✅ Found " + collegeCount + " college(s):")
+  say Text("")
+  
+  do i = 0
+  while (i < collegeCount) {
+    do college = foundColleges[i]
+    say Text("🏫 **" + college["Campus Full Name"] + "** (" + college["Campus Short Form"] + ")")
+    say Text("⚖️ " + college["College Authority"])
+    say Text("")
+    do i = i + 1
+  }
+  
+  if (collegeCount == 1) {
+    do selectedCollege = foundColleges[0]
+    goto show_college_details
+  }
+  
+  if (collegeCount > 1) {
+    say Text("Which college would you like to know more about?")
+    say Text("Type the college name or short form:")
+    hold
+    goto select_specific_college
+  }
+  
+  say Text("❌ No " + selectedType + " colleges found in " + selectedDistrict)
+  goto continue_search
 
-ask_continue:
-  do continueQuestion = Question(
-    title="Would you like to search for more colleges?",
+select_specific_college:
+  do searchTerm = event.text.to_lowercase()
+  do selectedCollege = null
+  
+  do i = 0
+  while (i < Length(foundColleges)) {
+    do college = foundColleges[i]
+    do collegeName = college["Campus Full Name"].to_lowercase()
+    do collegeShort = college["Campus Short Form"].to_lowercase()
+    
+    if (collegeName.contains(searchTerm) || collegeShort.contains(searchTerm)) {
+      do selectedCollege = college
+      break
+    }
+    do i = i + 1
+  }
+  
+  if (selectedCollege) {
+    goto show_college_details
+  } else {
+    say Text("❌ College not found. Please try again with the exact name or short form:")
+    hold
+    goto select_specific_college
+  }
+
+show_college_details:
+  say Text("🏫 **" + selectedCollege["Campus Full Name"] + "**")
+  say Text("🔤 Short Form: " + selectedCollege["Campus Short Form"])
+  say Text("🎓 University: " + selectedCollege["University Name"])
+  say Text("📍 District: " + selectedCollege["District"])
+  say Text("🏛️ Type: " + selectedCollege["College Type"])
+  say Text("⚖️ Authority: " + selectedCollege["College Authority"])
+  say Text("👨‍💼 Coordinator 1: " + selectedCollege["Helpdesk Coordinator 1 Name"])
+  say Text("📱 Phone 1: " + selectedCollege["Helpdesk Contact Number 1 "])
+  say Text("👨‍💼 Coordinator 2: " + selectedCollege["Helpdesk Coordinator 2 Name"])
+  say Text("📱 Phone 2: " + selectedCollege["Helpdesk Contact Number 2"])
+  say Text("💬 **WhatsApp Group:**")
+  say Text(selectedCollege["WhatsApp Group Link"])
+  goto continue_search
+
+continue_search:
+  say Text("")
+  say Text("Would you like to search for another college?")
+  say Question(
+    "Continue?",
     buttons=[
-      Button("Yes"),
-      Button("No")
+      Button("Yes, search again"),
+      Button("No, exit")
     ]
   )
-  say continueQuestion
   hold
-  if (event == "Yes") goto get_district
-  else goto end_search
+  
+  if (event.text == "Yes, search again") {
+    goto start
+  } else {
+    goto end
+  }
 
-end_search:
-  say "Thank you for using College Lookup Service!"
-  say "If you need any more information, feel free to start over."
-  say "Good luck with your college search! 🎓"
-  goto end 
+end:
+  say Text("👋 Thank you for using the College Information System!")
+  say Text("Have a great day!")

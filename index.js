@@ -27,14 +27,27 @@ app.get('/', (req, res) => {
 // Read and parse the Excel file
 let colleges = [];
 try {
-    // Use path.join to handle file paths correctly in both development and production
     const filePath = path.join(__dirname, 'Admission Information.xlsx');
     console.log('Attempting to read Excel file from:', filePath);
     
     const workbook = XLSX.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    colleges = XLSX.utils.sheet_to_json(worksheet);
+    const rawColleges = XLSX.utils.sheet_to_json(worksheet);
+    
+    // Filter and map only the required fields
+    colleges = rawColleges.map(college => ({
+        "Campus Full Name": college["Campus Full Name"],
+        "University Name": college["University Name"],
+        "District": college["District"],
+        "College Type": college["College Type"],
+        "College Authority": college["College Authority"],
+        "Helpdesk Coordinator 1 Name": college["Helpdesk Coordinator 1 Name"],
+        "Helpdesk Contact Number 1": college["Helpdesk Contact Number 1 "],
+        "Helpdesk Coordinator 2 Name": college["Helpdesk Coordinator 2 Name"],
+        "Helpdesk Contact Number 2": college["Helpdesk Contact Number 2"],
+        "WhatsApp Group Link": college["WhatsApp Group Link"]
+    }));
     
     console.log('Successfully loaded colleges data. Count:', colleges.length);
     console.log('Sample college data:', colleges[0]);
